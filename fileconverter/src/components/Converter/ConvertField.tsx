@@ -19,7 +19,7 @@ const ConvertField: React.FC = () => {
 
   return (
     <div className="p-10 h-[80%]">
-      <div {...getRootProps()} className="border-solid border-2 border-purple-400 p-10 rounded-3xl text-center hover:cursor-pointer h-[80%] flex items-center justify-center">
+      <div {...getRootProps()} className="border-solid border-2 border-secondary p-10 rounded-3xl text-center hover:cursor-pointer h-[80%] flex items-center justify-center">
         <input {...getInputProps()} />
         <div>
           <h2 className="p-4 text-xl">Drag 'n' Drop to Upload File</h2>
