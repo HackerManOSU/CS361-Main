@@ -7,8 +7,6 @@ import FileConverterPage from './components/FileConverterPage.tsx';
 import ConversionPage from './components/Converter/ConversionPage';
 import DownloadPage from './components/Download/DownloadPage';
 
-
-
 const App: React.FC = () => {
   return (
     <Router>
