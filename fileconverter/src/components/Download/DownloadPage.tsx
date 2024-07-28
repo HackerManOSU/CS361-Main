@@ -25,12 +25,22 @@ const DownloadPage: React.FC = () => {
     window.URL.revokeObjectURL(url);
   };
 
+  const getDisplayFileType = (fileType: string): string => {
+    if (fileType === 'application/docx') {
+      return 'docx';
+    }
+    if (fileType === 'application/pdf')
+      return 'pdf';
+    return fileType;
+  };
+
+
   return (
     <div className="p-10">
       <h1 className="text-3xl font-bold mb-4 text-center">Download Converted File</h1>
       <div className='flex flex-col md:flex-row w-full border-2 border-secondary rounded-xl text-black px-4 items-center justify-evenly text-center'>
         <p className='pt-10 pb-10 md:pt-0 md:pb-0'>File Name: {file?.name}</p>
-        <p className='pt-10 pb-10 md:pt-0 md:pb-0 mt-3 mb-3'>File Type: {file?.type}</p>
+        <p className='pt-10 pb-10 md:pt-0 md:pb-0 mt-3 mb-3'>File Type: {file ? getDisplayFileType(file.type) : 'No file selected'}</p>
         <p className='pt-10 pb-10 md:pt-0 md:pb-0'>File Size: {formatBytes(file?.size)}</p>
       </div>
 

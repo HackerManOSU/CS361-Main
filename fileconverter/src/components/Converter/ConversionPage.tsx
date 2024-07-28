@@ -19,7 +19,7 @@ const ConversionPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
-  const [conversionType, setConversionType] = useState<string>('docx-to-pdf'); // Default conversion type
+  const [conversionType, setConversionType] = useState<string>('docx-to-pdf');
 
   useEffect(() => {
     const state = location.state as LocationState;
@@ -35,8 +35,10 @@ const ConversionPage: React.FC = () => {
 
   const getDisplayFileType = (fileType: string): string => {
     if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-      return 'DOCX';
+      return 'docx';
     }
+    if (fileType === 'application/pdf')
+      return 'pdf';
     return fileType;
   };
 
@@ -45,17 +47,18 @@ const ConversionPage: React.FC = () => {
 
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('StoreFile', 'true');
 
     let apiUrl = '';
     let newExtension = '';
 
     switch (conversionType) {
       case 'docx-to-pdf':
-        apiUrl = `https://v2.convertapi.com/convert/docx/to/pdf?Secret=${import.meta.env.REACT_APP_CONVERT_API_KEY}`;
+        apiUrl = `https://v2.convertapi.com/convert/docx/to/pdf?Secret=${import.meta.env.CONVERT_API_KEY}`;
         newExtension = '.pdf';
         break;
       case 'pdf-to-docx':
-        apiUrl = `https://v2.convertapi.com/convert/pdf/to/docx?Secret=${import.meta.env.REACT_APP_CONVERT_API_KEY}`;
+        apiUrl = `https://v2.convertapi.com/convert/pdf/to/docx?Secret=${import.meta.env.CONVERT_API_KEY}`;
         newExtension = '.docx';
         break;
       default:
@@ -70,15 +73,18 @@ const ConversionPage: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
+        console.log("API Response Data:", data); // Check what the API returned
         const pdfUrl = data.Files[0].Url;
         const responseBlob = await fetch(pdfUrl);
         const blob = await responseBlob.blob();
+        console.log("Blob size:", blob.size); // Check the size of the blob
         const newFileName = getNewFileName(file.name, newExtension);
-        const convertedFile = new File([blob], newFileName, { type: `${newExtension.substring(1)}` });
+        const convertedFile = new File([blob], newFileName, { type: `application/${newExtension.substring(1)}` });
         navigate('/download', { state: { file: convertedFile } });
       } else {
-        console.error('Failed to convert file:', response.statusText);
+        console.error('Failed to convert file:', await response.text()); // Get error message from API
       }
+      
     } catch (error) {
       console.error('Error during file conversion:', error);
     }
