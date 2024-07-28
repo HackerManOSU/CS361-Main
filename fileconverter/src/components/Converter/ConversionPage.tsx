@@ -26,6 +26,7 @@ const ConversionPage: React.FC = () => {
     setFile(state.file);
   }, [location]);
 
+
   // Function to remove the old file extension and add the new one
   const getNewFileName = (originalName: string, targetExtension: string): string => {
     const lastIndex = originalName.lastIndexOf('.');
@@ -90,13 +91,21 @@ const ConversionPage: React.FC = () => {
     }
   };
 
+  const handleNavigate = () => {
+    const confirmReturn = window.confirm("Returning will reset the converter. Do you wish to continue?");
+    if (confirmReturn) {
+      navigate('/converter'); // Navigate only if confirmed
+    }
+  };
+
   return (
     <div className="p-10">
       <h1 className="text-3xl font-bold mb-4 text-center">File Converter</h1>
-      <div className='flex flex-col md:flex-row w-full border-2 border-secondary rounded-xl text-black px-4 items-center justify-evenly text-center'>
+      <div className='flex flex-col md:flex-row w-full border-2 border-secondary rounded-xl text-black px-4 py items-center justify-evenly text-center h-[7vh]'>
         <p className='pt-10 pb-10 md:pt-0 md:pb-0'>File Name: {file?.name}</p>
         <p className='pt-10 pb-10 md:pt-0 md:pb-0 mt-3 mb-3'>File Type: {file ? getDisplayFileType(file.type) : 'No file selected'}</p>
         <select value={conversionType} onChange={(e) => setConversionType(e.target.value)} className="border-secondary border-2 rounded-xl p-1">
+          <option selected disabled>Select Conversion</option>
           <option value="docx-to-pdf">DOCX to PDF</option>
           <option value="pdf-to-docx">PDF to DOCX</option>
         </select>
@@ -105,8 +114,19 @@ const ConversionPage: React.FC = () => {
       </div>
 
       <div className='flex flex-col items-center justify-center text-center my-[25vh]'>
-        <button onClick={handleConversion} className="bg-secondary text-white text-2xl py-4 px-8 rounded-2xl hover:bg-tertiary transition duration-300">
+        <p className='border-solid border-secondary border-2 rounded-xl mb-[1.5vh] p-2 text-[0.7rem]'>Convert files from various formats, including PDF, DOCX, and more.</p>
+        <button onClick={handleConversion} className="bg-secondary text-white text-xl py-4 px-8 rounded-2xl hover:bg-tertiary transition duration-300">
           Convert File
+        </button>
+        <p className='mt-[1.5vh] p-2 text-sm'>Conversions may take up to several minutes depending on file size</p>
+      </div>
+
+      <div>
+        <button
+          onClick={handleNavigate}
+          className="mt-5 border-secondary border-solid border-2 text-secondary py-3 px-8 rounded-lg hover:bg-purple-800 transition duration-300"
+        >
+          Return
         </button>
       </div>
 
