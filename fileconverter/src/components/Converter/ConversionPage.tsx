@@ -8,8 +8,16 @@ interface ConversionPageProps {
   file: File;
 }
 
-interface LocationState {
+interface FileDetails {
   file: File;
+  contentCheck?: {
+    isValid: boolean;
+    foundWords?: string[];
+  };
+}
+
+interface LocationState {
+  fileDetails: FileDetails;
 }
 
 function formatBytes(bytes: number, decimals = 2) {
@@ -30,14 +38,17 @@ const ConversionPage: React.FC<ConversionPageProps> = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [fileAge, setFileAge] = useState<number | null>(null);
+  const [contentCheckResult, setContentCheckResult] = useState<LocationState['fileDetails']['contentCheck']>();
+
 
   useEffect(() => {
-    const state = location.state as LocationState;
-    if (state && state.file) {
-      setLocalFile(state.file);
+    if (location.state?.fileDetails) {
+      setLocalFile(location.state.fileDetails.file);
+      setContentCheckResult(location.state.fileDetails.contentCheck);
     }
-  }, [location]);
+  }, [location.state]);
 
+  // Microservice B
   useEffect(() => {
     if (localFile) {
         const formData = new FormData();
@@ -59,6 +70,14 @@ const ConversionPage: React.FC<ConversionPageProps> = () => {
             });
     }
 }, [localFile]);
+
+// Microservice D
+useEffect(() => {
+  if (contentCheckResult && !contentCheckResult.isValid) {
+    const message = `Dangerous Content Found: (${contentCheckResult.foundWords?.join(', ')})`;
+    window.alert(message);
+  }
+}, [contentCheckResult]);
 
 
 
@@ -94,11 +113,11 @@ const ConversionPage: React.FC<ConversionPageProps> = () => {
 
     switch (conversionType) {
       case 'docx-to-pdf':
-        apiUrl = `https://v2.convertapi.com/convert/docx/to/pdf?Secret=${import.meta.env.VITE_CONVERT_API_KEY}`;
+        apiUrl = `https://v2.convertapi.com/convert/docx/to/pdf?Secret=${import.meta.env.CONVERT_API_KEY}`;
         newExtension = '.pdf';
         break;
       case 'pdf-to-docx':
-        apiUrl = `https://v2.convertapi.com/convert/pdf/to/docx?Secret=${import.meta.env.VITE_CONVERT_API_KEY}`;
+        apiUrl = `https://v2.convertapi.com/convert/pdf/to/docx?Secret=${import.meta.env.CONVERT_API_KEY}`;
         newExtension = '.docx';
         break;
       default:
@@ -137,7 +156,7 @@ const ConversionPage: React.FC<ConversionPageProps> = () => {
   };
 
   return (
-    <div className="px-[2vh] py-10">
+    <div className="py-10">
       {isLoading && (
         <div className="fixed inset-0 bg-white flex items-center justify-center">
           <LoadingIcons.ThreeDots stroke="#8594e4" speed={1} fill="#6643b5" />
@@ -146,17 +165,19 @@ const ConversionPage: React.FC<ConversionPageProps> = () => {
 
       <h1 className="text-3xl font-bold mb-4 text-center">File Converter</h1>
 
+      <div className='flex flex-col h-[40vh]'>
+
       <div className="flex flex-row">
-        <button onClick={toggleDropdown} className="w-[5vh] mr-[2vh] items-center flex justify-center">
+        <button onClick={toggleDropdown} className="w-[5vw] mx-[2vw] items-center flex justify-center">
           {dropdownOpen ? <FiChevronUp stroke="#6643b5" size={40} /> : <FiChevronDown stroke="#6643b5" size={40} />}
         </button>
 
-        <div className="flex flex-col md:flex-row w-full border-2 border-secondary rounded-xl text-black px-4 py items-center justify-evenly text-center h-[7vh]">
+        <div className="flex flex-col mr-[7vw] md:flex-row w-full border-2 border-secondary rounded-xl text-black px-4 items-center justify-evenly text-center min-h-[7vh]">
           <p className="pt-10 pb-10 md:pt-0 md:pb-0">File Name: {localFile?.name}</p>
           <p className="pt-10 pb-10 md:pt-0 md:pb-0 mt-3 mb-3">
             File Type: {localFile ? getDisplayFileType(localFile.type) : 'No file selected'}
           </p>
-          <select value={conversionType} onChange={(e) => setConversionType(e.target.value)} className="border-secondary border-2 rounded-xl p-1">
+          <select value={conversionType} onChange={(e) => setConversionType(e.target.value)} className="border-secondary border-2 rounded-xl p-1 mx-4 mb-10 md:mb-0">
             <option value="" disabled>
               Select Conversion
             </option>
@@ -167,13 +188,16 @@ const ConversionPage: React.FC<ConversionPageProps> = () => {
       </div>
 
       {dropdownOpen && (
-        <div className="ml-[7vh] mt-[0.5vh] flex flex-col md:flex-row w-[25vw] border-2 border-secondary rounded-lg text-black px-4 py-2 items-center justify-evenly text-center">
+        <div className="ml-[9vw] mt-[0.5vh] flex flex-col md:flex-row w-[50vw] border-2 border-secondary rounded-lg text-black px-4 py-2 items-center justify-evenly text-center">
           <p className="pt-10 pb-10 md:pt-0 md:pb-0">File Size: {formatBytes(localFile?.size || 0)}</p>
-          {fileAge !== null && <p>File age: {fileAge} days</p>}
+          {fileAge !== null && <p className='pb-10 md:pb-0 mt-3 mb-3'>File age: {fileAge} days</p>}
         </div>
       )}
 
-      <div className="flex flex-col items-center justify-center text-center my-[25vh]">
+      </div>
+
+
+      <div className="flex flex-col items-center justify-center text-center my-[15vh]">
         <p className="border-solid border-secondary border-2 rounded-xl mb-[1.5vh] p-2 text-[0.7rem]">Convert files from various formats, including PDF, DOCX, and more.</p>
         <button onClick={handleConversion} className="bg-secondary text-white text-xl py-4 px-8 rounded-2xl hover:bg-tertiary transition duration-300">
           Convert File
@@ -184,7 +208,7 @@ const ConversionPage: React.FC<ConversionPageProps> = () => {
       <div>
         <button
           onClick={handleNavigate}
-          className="mt-5 border-secondary border-solid border-2 text-secondary py-3 px-8 rounded-lg hover:bg-purple-800 transition duration-300"
+          className="absolute bottom-0 left-0 mt-5 mx-[2vh] mb-[2vh] border-secondary border-solid border-2 text-secondary py-3 px-8 rounded-lg hover:bg-purple-800 transition duration-300"
         >
           Return
         </button>
